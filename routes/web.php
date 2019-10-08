@@ -20,4 +20,5 @@ $router->group([
     'prefix' => 'flag'
 ], function () use ($router) {
     $router->get('/list', 'FlagController@list');
+    $router->get('/add', 'FlagController@add');
 });

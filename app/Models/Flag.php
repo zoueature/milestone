@@ -25,4 +25,11 @@ class Flag extends Model
     ];
 
     protected $table = 'flag';
+    public $timestamps = false;
+
+    public function getFlagsByUid(int $uid)
+    {
+        $flags = $this->where(['uid' => $uid])->get();
+        return $flags;
+    }
 }

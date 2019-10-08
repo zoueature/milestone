@@ -17,10 +17,14 @@ class FlagController extends Controller
         if (empty($category) || empty($task) || empty($taskSize)) {
             return $this->json(ErrorCode::ERROR_PARAM_EMPTY, 'Params require is empty');
         }
-        $flag->category = $category;
-        $flag->task = $task;
+        $flag->category_id = $category;
+        $flag->task_id = $task;
         $flag->task_size = $taskSize;
         $result = $flag->save();
+        if (!$result) {
+            return $this->json(ErrorCode::ERROR_SQL, 'Add Fail');
+        }
+        return $this->json(ErrorCode::SUCCESS, 'Success');
 
     }
 
@@ -37,9 +41,12 @@ class FlagController extends Controller
 
     }
 
-    public function list(Request $request)
+    public function list(Request $request, Flag $flag)
     {
+        $uid = 0;
         $type = $request->get('type', 0);
+        $allFlags = $flag->getFlagsByUid($uid);
+        dd($allFlags);
     }
 
     public function checkIn()
