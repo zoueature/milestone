@@ -20,5 +20,17 @@ $router->group([
     'prefix' => 'flag'
 ], function () use ($router) {
     $router->get('/list', 'FlagController@list');
-    $router->get('/add', 'FlagController@add');
+    $router->post('/add', 'FlagController@add');
+});
+
+$router->group([
+   'prefix' => 'category'
+], function () use ($router) {
+    $router->get('/list', 'CategoryController@list');
+});
+
+$router->group([
+    'prefix' => 'task'
+], function () use ($router) {
+    $router->get('/all', 'TaskController@allTask');
 });

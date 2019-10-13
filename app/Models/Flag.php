@@ -6,30 +6,33 @@ use Illuminate\Database\Eloquent\Model;
 
 class Flag extends Model
 {
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
-    protected $fillable = [
-        'name', 'email',
-    ];
-
-    /**
-     * The attributes excluded from the model's JSON form.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password',
-    ];
-
     protected $table = 'flag';
+
     public $timestamps = false;
 
-    public function getFlagsByUid(int $uid)
+    private $columnDbMapCode = [
+        'uid' => 'uid',
+        'category_id' => 'categoryId',
+        'task_id' => 'taskId',
+        'period' => 'period',
+        'task_size' => 'taskSize',
+        'last_check_in_time' => 'lastCheckInTime',
+        'status' => 'status',
+        'create_time' => 'createTime',
+        'update_time' => 'updateTime'
+    ];
+
+    /* -----------------------------
+     * 获取用户所属flag
+     * -----------------------------
+     */
+    public function getFlagsByUid(int $uid, int $type = -1)
     {
-        $flags = $this->where(['uid' => $uid])->get();
+        $tmp = $this->where(['uid' => $uid]);
+        if ($type >= 0) {
+            $tmp = $tmp->where(['status' => $type]);
+        }
+        $flags = $tmp->orderBy('create_time', 'desc')->get();
         return $flags;
     }
 }
