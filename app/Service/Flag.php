@@ -18,6 +18,7 @@ class Flag extends Service
     const PERIOD_UNIT_DAY = 'd';
     const PERIOD_UNIT_MONTH = 'm';
     const PERIOD_UNIT_YEAR = 'y';
+    const PERIOD_UNIT_WEEK = 'w';
     const TASK_UNIT_GE = 'g';
     const TASK_UNIT_ZU = 'z';
     const TASK_UNIT_CI = 'c';
@@ -53,12 +54,26 @@ class Flag extends Service
      */
     public function calCheckInTime(Collection $collection)
     {
+        $now = time();
         foreach ($collection as $flag) {
             $lastCheckInTime = $flag->last_check_in_time;
             if (empty($lastCheckInTime)) {
                 $lastCheckInTime = $flag->create_time;
             }
-            $nextCheckInTime = strtotime($lastCheckInTime) + $flag->period;
+            $periodUnit = self::PERIOD_UNIT_MAP_TIME_UNIT[$flag->period_unit] ?? '';
+            if ($periodUnit === 'w') {
+                $diffDay = $flag->period - date('w');
+                $diffPeriod = $diffDay >= 0 ? $diffDay : $diffDay + 7;
+                $nextCheckInTime =  strtotime($lastCheckInTime."+{$diffPeriod} day");
+            } else {
+                for ($i =1; $i < 10000; $i ++) {
+                    $diffPeriod = $flag->period * $i;
+                    $nextCheckInTime = strtotime($lastCheckInTime."+{$diffPeriod} {$periodUnit}");
+                    if ($nextCheckInTime > $now) {
+                        break;
+                    }
+                }
+            }
             $flag->nextCheckInTime = date('Y-m-d H:i:s', $nextCheckInTime);
         }
         return $collection;

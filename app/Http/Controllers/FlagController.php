@@ -124,13 +124,12 @@ class FlagController extends Controller
         if (empty($allFlags)) {
             return $this->json(ErrorCode::DATA_NULL, 'empty');
         }
-        $needAll = $request->input('all', 0);
-        if ($needAll) {
-            return $this->json(ErrorCode::SUCCESS, 'Success', $allFlags->toArray());
-        }
         $allFlagsWithNext = $flagSvc->calCheckInTime($allFlags);
         $extraInfos = $flagSvc->getAllInfo($allFlagsWithNext, $categorySvc, $taskSvc);
         $result = [];
+        $today = date('Y-m-d');
+        $tomorrow = date('Y-m-d', strtotime('+1 day'));
+        $todayCheckIn = [];
         foreach ($allFlagsWithNext as $item) {
             $cate = $extraInfos['cate'][$item->category_id] ?? null;
             $catName = empty($cate) ? '' : $cate->category_name;
@@ -138,7 +137,7 @@ class FlagController extends Controller
             $taskName = empty($task) ? '' : $task->task_name;
             $taskSizeUnitName = FlagSvc::UNIT_MAP_NAME[$item->task_unit] ?? '';
             $periodUnitName = FlagSvc::UNIT_MAP_NAME[$item->period_unit] ?? '';
-            $result[] = [
+            $flagItem = [
                 'id' => $item->id,
                 'img' => empty($task) ?
                     'http://a.hiphotos.baidu.com/image/pic/item/838ba61ea8d3fd1fc9c7b6853a4e251f94ca5f46.jpg' :
@@ -154,7 +153,18 @@ class FlagController extends Controller
                 'nextCheckIn' => $item->nextCheckInTime,
                 'period' => $item->period,
                 'periodName' => $item->period.$periodUnitName,
+                'checkNum' => $item->check_num ?? 0,
+                'destCheckNum' => $item->dest_check_num ?? 0
             ];
+            $result[] = $flagItem;
+            if ($flagItem['nextCheckIn'] >= $today && $flagItem['nextCheckIn'] < $tomorrow) {
+                $todayCheckIn[] = $flagItem;
+            }
+
+        }
+        $checkToday = $request->input('checkToday', 0);
+        if ($checkToday) {
+            return $this->json(ErrorCode::SUCCESS, 'Success', $todayCheckIn);
         }
         return $this->json(ErrorCode::SUCCESS, 'Success', $result);
     }
