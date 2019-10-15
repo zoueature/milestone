@@ -4,7 +4,11 @@
 namespace App\Service;
 
 
+use App\Models\CheckInLog;
 use Illuminate\Database\Eloquent\Collection;
+use App\Models\Flag as FlagModel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Flag extends Service
 {
@@ -115,8 +119,31 @@ class Flag extends Service
         return $result;
     }
 
-    public function calDiffTimeToCheckIn(int $period, string $periodUnit) :int
+    public function checkIn(FlagModel $flag, int $uid, CheckInLog $checkInLog)
     {
-
+        $now = date('Y-m-d H:i:s');
+        try {
+            DB::beginTransaction();
+            $checkInLog->uid = $uid;
+            $checkInLog->flag_id = $flag->id;
+            $checkInLog->check_time = $now;
+            $result = $checkInLog->save();
+            if (empty($result)) {
+                DB::rollback();
+                return false;
+            }
+            $flag->last_check_in_time = $now;
+            $flag->check_num ++;
+            $flagResult = $flag->save();
+            if (empty($flagResult)) {
+                DB::rollBack();
+                return false;
+            }
+            DB::commit();
+        } catch (\Exception $exception) {
+            Log::error('check in error : '.$flag->id);
+            return false;
+        }
+        return true;
     }
 }

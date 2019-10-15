@@ -14,4 +14,6 @@ class ErrorCode
 
     const ERROR_SQL = 200;
     const DATA_NULL = 201;
+
+    const ERROR_NOT_OWNER = 301;
 }

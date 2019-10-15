@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Component\ErrorCode;
+use App\Models\CheckInLog;
 use App\Models\Flag;
 use App\Service\Category;
 use App\Service\Flag as FlagSvc;
@@ -169,9 +170,32 @@ class FlagController extends Controller
         return $this->json(ErrorCode::SUCCESS, 'Success', $result);
     }
 
-    public function checkIn()
-    {
-
+    public function checkIn(
+        Request $request,
+        Flag $flag,
+        FlagSvc $flagSvc,
+        CheckInLog $checkInLog
+    ){
+        $uid = $this->getUid();
+        if (empty($uid)) {
+            return $this->json(ErrorCode::ERROR_NO_LOGIN, 'No login');
+        }
+        $flagId = $request->input('flagId', 0);
+        if (empty($flagId)) {
+            return $this->json(ErrorCode::ERROR_PARAM_EMPTY, 'Flag id is required');
+        }
+        $flagInfo = $flag->find($flagId);
+        if (empty($flagInfo)) {
+            return $this->json(ErrorCode::DATA_NULL, 'Flag not found');
+        }
+        if ($flagInfo->uid != $uid) {
+            return $this->json(ErrorCode::ERROR_NOT_OWNER, 'Not owner');
+        }
+        $result = $flagSvc->checkIn($flagInfo, $uid, $checkInLog);
+        if (empty($result)) {
+            return $this->json(ErrorCode::ERROR_SQL, 'Check in fail');
+        }
+        return $this->json(ErrorCode::SUCCESS, 'Success');
     }
 
 

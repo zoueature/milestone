@@ -21,6 +21,7 @@ $router->group([
 ], function () use ($router) {
     $router->get('/list', 'FlagController@list');
     $router->post('/add', 'FlagController@add');
+    $router->post('/checkIn', 'FlagController@checkIn');
 });
 
 $router->group([
