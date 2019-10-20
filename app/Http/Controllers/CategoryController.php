@@ -29,4 +29,16 @@ class CategoryController extends Controller
         }
         return $this->json(ErrorCode::SUCCESS, 'Success', $result);
     }
+
+    public function add()
+    {
+
+    }
+
+    public function delete()
+    {
+
+    }
+
+
 }

@@ -146,4 +146,21 @@ class Flag extends Service
         }
         return true;
     }
+
+    /* ---------------------------
+     * 获取每个状态的flag数量
+     * ---------------------------
+     */
+    public function getFlagCount(FlagModel $flag, int $uid, int &$total = 0) :array
+    {
+        $result = [];
+        $statusNum = $flag->getUserFlagStatusNum($uid);
+        if (!empty($statusNum)) {
+            foreach ($statusNum as $item) {
+                $result[$item->status] = $item->num;
+                $total += $item->num;
+            }
+        }
+        return $result;
+    }
 }

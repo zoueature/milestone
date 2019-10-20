@@ -35,3 +35,9 @@ $router->group([
 ], function () use ($router) {
     $router->get('/all', 'TaskController@allTask');
 });
+
+$router->group([
+    'prefix' => 'user'
+], function () use ($router) {
+   $router->get('/info', 'UserController@userInfo');
+});

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 
 class Flag extends Model
 {
@@ -33,5 +34,18 @@ class Flag extends Model
         }
         $flags = $tmp->orderBy('create_time', 'desc')->get();
         return $flags;
+    }
+
+    /* -----------------------------
+     * 获取各个状态的flag个数
+     * -----------------------------
+     */
+    public function getUserFlagStatusNum(int $uid)
+    {
+        $statusList = $this->select(DB::raw('count(*) as num, status'))
+            ->where('uid', '=', $uid)
+            ->groupBy('status')
+            ->get();
+        return $statusList;
     }
 }
