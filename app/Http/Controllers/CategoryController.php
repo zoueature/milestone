@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 
 
 use App\Component\ErrorCode;
+use App\Models\Category;
 use App\Service\Category as CategorySvc;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -35,9 +37,29 @@ class CategoryController extends Controller
 
     }
 
-    public function delete()
+    public function remove(Request $request)
     {
-
+        $uid = $this->getUid();
+        $cateId = $request->input('cateId');
+        if (empty($cateId)) {
+            return $this->json(ErrorCode::ERROR_PARAM_EMPTY, 'Cate empty');
+        }
+        $cateInfo = Category::find($cateId);
+        if (empty($cateInfo)) {
+            return $this->json(ErrorCode::DATA_NULL, 'Cate not found');
+        }
+        if ($cateInfo->uid != $uid) {
+            return $this->json(ErrorCode::ERROR_NOT_OWNER, 'Bad Request');
+        }
+        if ($cateInfo->status != CategorySvc::STATUS_VALID) {
+            return $this->json(ErrorCode::ERROR_CATE_INVALID, 'Cate is invalid now');
+        }
+        $cateInfo->status = CategorySvc::STATUS_DELETED;
+        $result = $cateInfo->save();
+        if (empty($result)) {
+            return $this->json(ErrorCode::ERROR_SQL, 'Operate error');
+        }
+        return $this->json(ErrorCode::SUCCESS, 'Success');
     }
 
 

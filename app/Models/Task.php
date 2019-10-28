@@ -21,6 +21,7 @@ class Task extends Model
             ])
             ->join('category', 'category.id', '=', 'task.category_id')
             ->where('task.uid', '=', $uid)
+            ->where('category.status', '=', \App\Service\Category::STATUS_VALID)
             ->get();
         return $all;
     }

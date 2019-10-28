@@ -10,6 +10,7 @@ use App\Service\Category;
 use App\Service\Flag as FlagSvc;
 use App\Service\Task as TaskSvc;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class FlagController extends Controller
 {
@@ -22,15 +23,13 @@ class FlagController extends Controller
         $category = $request->post('categoryId', '');
         $task = $request->post('taskId', '');
         $period = $request->post('period', 0);
-        $periodUnit = $request->post('periodUnit', '');
         $taskSize = $request->post('taskSize', 0);
         $taskSizeUnit = $request->post('taskSizeUnit', '');
         if (empty($category) ||
             empty($task) ||
             empty($taskSize) ||
             empty($taskSizeUnit) ||
-            empty($period) ||
-            empty($periodUnit)
+            empty($period)
         ) {
             return $this->json(ErrorCode::ERROR_PARAM_EMPTY, 'Params require is empty');
         }
@@ -40,7 +39,6 @@ class FlagController extends Controller
         $flag->task_size = $taskSize;
         $flag->task_unit = $taskSizeUnit;
         $flag->period = $period;
-        $flag->period_unit = $periodUnit;
         $result = $flag->save();
         if (!$result) {
             return $this->json(ErrorCode::ERROR_SQL, 'Add Fail');
@@ -129,7 +127,6 @@ class FlagController extends Controller
         $extraInfos = $flagSvc->getAllInfo($allFlagsWithNext, $categorySvc, $taskSvc);
         $result = [];
         $today = date('Y-m-d');
-        $tomorrow = date('Y-m-d', strtotime('+1 day'));
         $todayCheckIn = [];
         foreach ($allFlagsWithNext as $item) {
             $cate = $extraInfos['cate'][$item->category_id] ?? null;
@@ -149,16 +146,17 @@ class FlagController extends Controller
                 'taskId' => $item->task_id,
                 'taskName' => $taskName,
                 'taskSize' => $item->task_size,
-                'taskSizeName' => $item->task_size.$taskSizeUnitName,
+                'taskSizeName' => $item->task_size . $taskSizeUnitName,
                 'lastCheckIn' => $item->last_check_in_time ?: $item->create_time,
                 'nextCheckIn' => $item->nextCheckInTime,
+                'finalCheckIn' => $item->nextNextCheckInTime,
                 'period' => $item->period,
-                'periodName' => $item->period.$periodUnitName,
+                'periodName' => $item->period . $periodUnitName,
                 'checkNum' => $item->check_num ?? 0,
                 'destCheckNum' => $item->dest_check_num ?? 0
             ];
             $result[] = $flagItem;
-            if ($flagItem['nextCheckIn'] >= $today && $flagItem['nextCheckIn'] < $tomorrow) {
+            if ($flagItem['nextCheckIn'] == $today) {
                 $todayCheckIn[] = $flagItem;
             }
 
@@ -175,7 +173,8 @@ class FlagController extends Controller
         Flag $flag,
         FlagSvc $flagSvc,
         CheckInLog $checkInLog
-    ){
+    )
+    {
         $uid = $this->getUid();
         if (empty($uid)) {
             return $this->json(ErrorCode::ERROR_NO_LOGIN, 'No login');
@@ -191,12 +190,14 @@ class FlagController extends Controller
         if ($flagInfo->uid != $uid) {
             return $this->json(ErrorCode::ERROR_NOT_OWNER, 'Not owner');
         }
+        $today = date('Y-m-d');
+        if ($flagSvc->calNextTime($flagInfo) !== $today) {
+            return $this->json(ErrorCode::ERROR_NOT_CHECK_IN_TIME, 'Can not check in now');
+        }
         $result = $flagSvc->checkIn($flagInfo, $uid, $checkInLog);
         if (empty($result)) {
             return $this->json(ErrorCode::ERROR_SQL, 'Check in fail');
         }
         return $this->json(ErrorCode::SUCCESS, 'Success');
     }
-
-
 }

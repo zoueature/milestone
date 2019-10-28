@@ -58,29 +58,40 @@ class Flag extends Service
      */
     public function calCheckInTime(Collection $collection)
     {
-        $now = time();
         foreach ($collection as $flag) {
-            $lastCheckInTime = $flag->last_check_in_time;
-            if (empty($lastCheckInTime)) {
-                $lastCheckInTime = $flag->create_time;
-            }
-            $periodUnit = self::PERIOD_UNIT_MAP_TIME_UNIT[$flag->period_unit] ?? '';
-            if ($periodUnit === 'w') {
-                $diffDay = $flag->period - date('w');
-                $diffPeriod = $diffDay >= 0 ? $diffDay : $diffDay + 7;
-                $nextCheckInTime =  strtotime($lastCheckInTime."+{$diffPeriod} day");
-            } else {
-                for ($i =1; $i < 10000; $i ++) {
-                    $diffPeriod = $flag->period * $i;
-                    $nextCheckInTime = strtotime($lastCheckInTime."+{$diffPeriod} {$periodUnit}");
-                    if ($nextCheckInTime > $now) {
-                        break;
-                    }
-                }
-            }
-            $flag->nextCheckInTime = date('Y-m-d H:i:s', $nextCheckInTime);
+            $flag->nextCheckInTime = $this->calNextTime($flag);
         }
         return $collection;
+    }
+
+    public function calNextTime(\App\Models\Flag $flag)
+    {
+        $todayWeek = date('w');
+        $today = date('Y-m-d');
+        $checkTime = date('Y-m-d', strtotime($flag->last_check_in_time));
+        $checkDateString = decbin($flag->period);
+        $length = strlen($checkDateString);
+        $nextCheckInTime = -1;
+        for ($i = $length - 1; $i >= 0; $i --) {
+            $stringWeek = 7 - $length + $i;
+            if ($checkDateString[$i] == 1) {
+                if ($today == $checkTime && $stringWeek < $todayWeek) {
+                    $nextCheckInTime = $stringWeek;
+                    break;
+                } elseif ($today != $checkTime && $stringWeek <= $todayWeek) {
+                    $nextCheckInTime = $stringWeek;
+                    break;
+                }
+                $lastGotTime = $stringWeek;
+            }
+            if ($i == 0 && $nextCheckInTime < 0) {
+                $nextCheckInTime = $lastGotTime;
+            }
+        }
+        $diffDay = $nextCheckInTime - $todayWeek;
+        $realDiffDay = $diffDay >= 0 ? $diffDay : ($diffDay + 7);
+        $next = date('Y-m-d', strtotime("+{$realDiffDay} day"));
+        return $next;
     }
 
     /* -----------------------

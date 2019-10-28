@@ -28,6 +28,7 @@ $router->group([
    'prefix' => 'category'
 ], function () use ($router) {
     $router->get('/list', 'CategoryController@list');
+    $router->post('/remove', 'CategoryController@remove');
 });
 
 $router->group([
