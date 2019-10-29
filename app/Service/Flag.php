@@ -72,23 +72,28 @@ class Flag extends Service
         $checkDateString = decbin($flag->period);
         $length = strlen($checkDateString);
         $nextCheckInTime = -1;
-        for ($i = $length - 1; $i >= 0; $i --) {
-            $stringWeek = 7 - $length + $i;
-            if ($checkDateString[$i] == 1) {
-                if ($today == $checkTime && $stringWeek < $todayWeek) {
-                    $nextCheckInTime = $stringWeek;
-                    break;
-                } elseif ($today != $checkTime && $stringWeek <= $todayWeek) {
+        $todayIndex = $todayWeek - (7 - $length);
+        $todayIndex = $todayIndex < 0 ? 0 : $todayIndex;
+        if ($checkTime !== $today && $checkDateString[$todayIndex] == 1) {
+            $nextCheckInTime = 7 - $length + $todayIndex;
+        } else {
+            $got = false;
+            for ($i = $todayIndex + 1; $i < $length; $i ++) {
+                if ($checkDateString[$i] == 1) {
+                    $stringWeek = 7 - $length + $i;
+                    $got = true;
                     $nextCheckInTime = $stringWeek;
                     break;
                 }
-                $lastGotTime = $stringWeek;
             }
-            if ($i == 0 && $nextCheckInTime < 0) {
-                $nextCheckInTime = $lastGotTime;
+            if (!$got) {
+                $nextCheckInTime = 7 - $length;
             }
         }
         $diffDay = $nextCheckInTime - $todayWeek;
+        if ($diffDay == 0 && $checkTime == $today) {
+            $diffDay += 7;
+        }
         $realDiffDay = $diffDay >= 0 ? $diffDay : ($diffDay + 7);
         $next = date('Y-m-d', strtotime("+{$realDiffDay} day"));
         return $next;

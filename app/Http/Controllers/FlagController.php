@@ -10,7 +10,6 @@ use App\Service\Category;
 use App\Service\Flag as FlagSvc;
 use App\Service\Task as TaskSvc;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class FlagController extends Controller
 {
