@@ -24,11 +24,13 @@ class FlagController extends Controller
         $period = $request->post('period', 0);
         $taskSize = $request->post('taskSize', 0);
         $taskSizeUnit = $request->post('taskSizeUnit', '');
+        $destCheckNum = $request->post('destCheckNum', 0);
         if (empty($category) ||
             empty($task) ||
             empty($taskSize) ||
             empty($taskSizeUnit) ||
-            empty($period)
+            empty($period) ||
+            empty($destCheckNum)
         ) {
             return $this->json(ErrorCode::ERROR_PARAM_EMPTY, 'Params require is empty');
         }
@@ -38,6 +40,7 @@ class FlagController extends Controller
         $flag->task_size = $taskSize;
         $flag->task_unit = $taskSizeUnit;
         $flag->period = $period;
+        $flag->dest_check_num = $destCheckNum;
         $result = $flag->save();
         if (!$result) {
             return $this->json(ErrorCode::ERROR_SQL, 'Add Fail');
