@@ -152,10 +152,10 @@ class FlagController extends Controller
                 'lastCheckIn' => $item->last_check_in_time ?: $item->create_time,
                 'nextCheckIn' => $item->nextCheckInTime,
                 'finalCheckIn' => $item->nextNextCheckInTime,
-                'period' => $item->period,
+                'period' => $item->checkPeriod,
                 'periodName' => $item->period . $periodUnitName,
-                'checkNum' => $item->check_num ?? 0,
-                'destCheckNum' => $item->dest_check_num ?? 0
+                'checkNum' => sprintf('%02d', $item->check_num ?? 0),
+                'destCheckNum' => sprintf('%02d', $item->dest_check_num ?? 0)
             ];
             $result[] = $flagItem;
             if ($flagItem['nextCheckIn'] == $today) {

@@ -59,17 +59,20 @@ class Flag extends Service
     public function calCheckInTime(Collection $collection)
     {
         foreach ($collection as $flag) {
-            $flag->nextCheckInTime = $this->calNextTime($flag);
+            $flag->nextCheckInTime = $this->calNextTime($flag, true);
         }
         return $collection;
     }
 
-    public function calNextTime(\App\Models\Flag $flag)
+    public function calNextTime(\App\Models\Flag $flag, bool $needExtraInfo = false)
     {
         $todayWeek = date('w');
         $today = date('Y-m-d');
         $checkTime = date('Y-m-d', strtotime($flag->last_check_in_time));
         $checkDateString = decbin($flag->period);
+        if ($needExtraInfo) {
+            $flag->checkPeriod = $checkDateString;
+        }
         $length = strlen($checkDateString);
         $nextCheckInTime = -1;
         $todayIndex = $todayWeek - (7 - $length);
@@ -157,7 +160,7 @@ class Flag extends Service
             }
             DB::commit();
         } catch (\Exception $exception) {
-            Log::error('check in error : '.$flag->id);
+            Log::error('check in error : '.$flag->id. 'info: '.$exception->getMessage());
             return false;
         }
         return true;
