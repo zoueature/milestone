@@ -5,17 +5,18 @@ namespace App\Http\Controllers;
 
 
 use App\Component\ErrorCode;
+use App\Service\Category;
 use App\Service\Task as TaskSvc;
 
 class TaskController extends Controller
 {
-    public function allTask(TaskSvc $taskSvc)
+    public function allTask(Category $categorySvc)
     {
         $uid = $this->getUid();
         if (empty($uid)) {
             return $this->json(ErrorCode::SUCCESS, 'No login');
         }
-        $allTask = $taskSvc->allWithCate($uid);
+        $allTask = $categorySvc->allWithTask($uid);
         if (empty($allTask)) {
             return $this->json(ErrorCode::DATA_NULL, 'Empty');
         }
@@ -28,11 +29,13 @@ class TaskController extends Controller
                     'categoryImg' => $task->category_img
                 ];
             }
-            $category[$task->category_id]['task'][] = [
-                'taskId' => $task->task_id,
-                'taskName' => $task->task_name,
-                'taskImg' => $task->task_img
-            ];
+            if (isset($task->task_id)) {
+                $category[$task->category_id]['task'][] = [
+                    'taskId' => $task->task_id,
+                    'taskName' => $task->task_name,
+                    'taskImg' => $task->task_img
+                ];
+            }
         }
         $result = [];
         $i = 0;
@@ -45,6 +48,10 @@ class TaskController extends Controller
                 $tmp = [];
             }
         }
-        return $this->json(ErrorCode::SUCCESS, 'Success', $result);
+        $rertunData = [
+            'cateFormat' => $result,
+            'all' => $category
+        ];
+        return $this->json(ErrorCode::SUCCESS, 'Success', $rertunData);
     }
 }

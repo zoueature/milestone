@@ -38,4 +38,9 @@ class Category extends Service
         return $this->categoryModel->getUserCateCount($uid);
 
     }
+
+    public function allWithTask(int $uid)
+    {
+        return $this->categoryModel->allWithTask($uid);
+    }
 }
