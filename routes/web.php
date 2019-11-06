@@ -29,12 +29,14 @@ $router->group([
 ], function () use ($router) {
     $router->get('/list', 'CategoryController@list');
     $router->post('/remove', 'CategoryController@remove');
+    $router->post('/add', 'CategoryController@add');
 });
 
 $router->group([
     'prefix' => 'task'
 ], function () use ($router) {
     $router->get('/all', 'TaskController@allTask');
+    $router->post('/add', 'TaskController@add');
 });
 
 $router->group([

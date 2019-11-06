@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 
 
 use App\Component\ErrorCode;
+use App\Models\Task;
 use App\Service\Category;
 use App\Service\Task as TaskSvc;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
@@ -53,5 +55,32 @@ class TaskController extends Controller
             'all' => $category
         ];
         return $this->json(ErrorCode::SUCCESS, 'Success', $rertunData);
+    }
+
+    public function add(Request $request, Task $task)
+    {
+        $uid = $this->getUid();
+        if (empty($uid)) {
+            return $this->json(ErrorCode::ERROR_NO_LOGIN, 'No Login');
+        }
+        $icon = $request->input('icon', '');
+        $name = $request->input('name', '');
+        $categoryId = $request->input('categoryId', 0);
+        if (empty($icon) || empty($name) || empty($categoryId)) {
+            return $this->json(ErrorCode::ERROR_PARAM_EMPTY);
+        }
+        $cate = \App\Models\Category::find($categoryId);
+        if (empty($cate)) {
+            return $this->json(ErrorCode::DATA_NULL, 'Category not found');
+        }
+        $task->uid = $uid;
+        $task->cover_url = $icon;
+        $task->task_name = $name;
+        $task->category_id = $categoryId;
+        $result = $task->save();
+        if (empty($result)) {
+            return $this->json(ErrorCode::ERROR_SQL, 'Add fail');
+        }
+        return $this->json(ErrorCode::SUCCESS, 'Success', ['id' => $task->id]);
     }
 }

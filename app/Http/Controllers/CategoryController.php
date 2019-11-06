@@ -32,9 +32,25 @@ class CategoryController extends Controller
         return $this->json(ErrorCode::SUCCESS, 'Success', $result);
     }
 
-    public function add()
+    public function add(Request $request, Category $category)
     {
-
+        $uid = $this->getUid();
+        if (empty($uid)) {
+            return $this->json(ErrorCode::ERROR_NO_LOGIN, 'No Login');
+        }
+        $icon = $request->input('icon', '');
+        $name = $request->input('name', '');
+        if (empty($icon) || empty($name)) {
+            return $this->json(ErrorCode::ERROR_PARAM_EMPTY);
+        }
+        $category->uid = $uid;
+        $category->cover_url = $icon;
+        $category->category_name = $name;
+        $result = $category->save();
+        if (empty($result)) {
+            return $this->json(ErrorCode::ERROR_SQL, 'Add fail');
+        }
+        return $this->json(ErrorCode::SUCCESS, 'Success', ['id' => $category->id]);
     }
 
     public function remove(Request $request)
